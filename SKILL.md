@@ -30,7 +30,7 @@ The user's choices override these defaults. Reuse the brief across batches; do n
 
 ## 2. Generate candidates
 
-Read the naming guide. Generate about 20 names internally and retain the best 10 across several naming styles. Explain each finalist's connection to the brief. Check availability before presenting names as viable picks.
+Read the naming guide. Generate about 20 names internally and retain the best 10 across several naming styles. Before checking, list the ten with the technique that produced each and its word parts, and replace any name that pushes a stem past two occurrences or a technique past four. Explain each finalist's connection to the brief. Check availability before presenting names as viable picks.
 
 ## 3. Check availability and prices
 
@@ -41,7 +41,9 @@ python3 /absolute/path/to/domain-scout/scripts/check_domains.py name1 name2 name
   --tlds ai,com,dev --md domain-report.md --json domain-report.json
 ```
 
-Bare names are checked across every requested TLD; full domains such as `example.com` check only that domain. `--file names.txt` accepts one name per line. Keep the default four workers and delay for normal batches.
+Bare names are checked across every requested TLD; full domains such as `example.com` check only that domain. `--file names.txt` accepts one name per line. Keep the default four workers and delay for normal batches. `--registrar porkbun|namecheap|dynadot` selects which registrar the confirmation links point at.
+
+Pass the TLDs the user can actually buy. When the budget rules out the preferred TLD, say so once with the observed price, drop it from `--tlds` ordering so every `best` is affordable, and stop presenting it as an option. The order given to `--tlds` decides the `best` column, so a first-choice TLD that is over budget poisons the whole ranking.
 
 The script uses DNS-over-HTTPS NS records to identify registered domains, then registry RDAP discovered through IANA, and finally the optional `whois` CLI when RDAP is inconclusive. DNS absence alone never establishes availability. Porkbun's public TLD list prices need no API key.
 
@@ -52,11 +54,15 @@ The script uses DNS-over-HTTPS NS records to identify registered domains, then r
 
 List prices are estimates for a TLD, not quotes for that name. If both `PORKBUN_API_KEY` and `PORKBUN_SECRET_API_KEY` are already available, add `--exact` to check up to 10 free domains, or set `--max-exact` for a specific shortlist. Exact checks are rate limited. Never print or save credentials; do not claim confirmation when the API returns an error or inconclusive response. A connected registrar check tool may provide equivalent evidence.
 
-For generated batches, if fewer than three candidates have the first-choice TLD free, try another batch of 10, up to **three batches total**. Reuse the brief, avoid repeated names, and preserve each batch as `domain-report-1.md`/`.json`, etc.; put the consolidated shortlist in `domain-report.md`. If network access fails broadly, stop and report the limitation instead of generating more names to retry the same outage. For supplied-domain checks, report those results directly.
+For generated batches, if fewer than three candidates have the first-choice TLD free, try another batch of 10, up to **three batches total**. Reuse the brief and avoid repeated names. Draw a retry from a different part of the brief's field than the batch before it; do not rebuild the batch out of whatever word shape survived the last check. Preserve each batch as `domain-report-1.md`/`.json`, etc.; put the consolidated shortlist in `domain-report.md`. If network access fails broadly, stop and report the limitation instead of generating more names to retry the same outage. For supplied-domain checks, report those results directly.
 
 ## 4. Confirm finalists and unresolved results
 
 If a browser tool exists, open the registrar links in the report for promising `?` results and the top picks. Record the observed availability, currency, registration term, premium status, renewal price if visible, URL, and check time. Preserve the script's raw JSON as evidence and put browser findings in the final Markdown report. Search-only snippets are not live checkout confirmation.
+
+Registrars vary in how much automation they tolerate, and this changes without notice. As observed in September 2026: Porkbun served an anti-bot page to a headless browser immediately, Namecheap sat behind a Cloudflare interstitial, and Dynadot answered about a dozen sequential searches before challenging. Space requests by a few seconds, confirm the shortlist rather than every free name, and switch registrars with `--registrar` when one blocks. A registrar that blocks you is not evidence about the domain: report those picks as registry-free and registrar-unconfirmed rather than downgrading them.
+
+Spend confirmation effort where premium pricing actually exists. An unregistered `.com` or `.net` is standard-priced because those registries have no premium tiers; `.dev`, `.ai` and most newer TLDs do tier individual names, so a `FREE` result there can still carry a several-hundred-dollar price.
 
 Without a browser tool, include the registrar links and label confirmation as pending. To open tabs locally, the checker supports `--open unclear` or `--open free` (up to 10 tabs); tell the user before doing so. Opening tabs does not read their contents. Do not assume Pi, Codex, or Claude has browser automation installed.
 

@@ -22,11 +22,15 @@ Use the user's exclusions and constraints. Do not impose an industry-specific vo
 - **Meaning:** Consider unintended meanings in the audience's languages. Search when uncertain; do not claim exhaustive language checks.
 - **Collisions:** Search finalists alongside the relevant product category and audience. Flag confusingly similar brands using current evidence. Explain relevant conflicts; an unrelated use in another industry is not automatically disqualifying. This is not trademark clearance.
 - **Fit:** Explain each finalist in one line using the brief's desired qualities.
-- **Variety:** Keep multiple naming approaches in a batch instead of filling it with close synonyms.
+- **Variety:** Before checking a batch, write each candidate down with the technique that produced it and its word parts. No stem, prefix or suffix may appear in more than two of ten names, and no single technique may produce more than four. Replace the surplus before running the check, not after.
 
 ## Availability strategy
 
-Short common words face more competition. Include less common words, compounds, and pronounceable coined names, according to the brief. These are generation heuristics; only live checks establish registration status.
+Short common words face more competition. Include less common real words, pronounceable coined names, and compounds, according to the brief. These are generation heuristics; only live checks establish registration status.
+
+Availability never drives generation. A batch that returns few free first-choice domains usually means the names were too common, not that the metaphor was wrong. Widen the field on a retry — another trade, another register, rarer words — instead of narrowing to whatever word shape happened to survive. A productive compound pattern is the easiest way to find a free domain and the easiest way to land a name that reads as a product category, so reach for a rarer real word or a clean coinage before reaching for another compound.
+
+A strong name on the second-choice TLD usually beats a forgettable one on the first. Say so plainly when ranking instead of letting the TLD order decide alone.
 
 Check every requested TLD and rank viable candidates using the user's preference order, naming fit, budget, and confirmed pricing. Do not assume a name is available because of its shape or length.
 
