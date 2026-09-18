@@ -48,6 +48,8 @@ KNOWN_RDAP = {  # used only when the IANA bootstrap file cannot be fetched
     "app": "https://www.registry.google/rdap/",
 }
 DOH = "https://cloudflare-dns.com/dns-query"
+REGISTRARS = ("porkbun", "namecheap", "dynadot")
+DEFAULT_REGISTRAR = "porkbun"
 PORKBUN_PRICING = "https://api.porkbun.com/api/json/v3/pricing/get"
 PORKBUN_CHECK = "https://api.porkbun.com/api/json/v3/domain/checkDomain/"
 
@@ -228,6 +230,7 @@ def registrar_urls(domain: str) -> dict:
     return {
         "porkbun": f"https://porkbun.com/checkout/search?q={quote(domain)}",
         "namecheap": f"https://www.namecheap.com/domains/registration/results/?domain={quote(domain)}",
+        "dynadot": f"https://www.dynadot.com/domain/search?domain={quote(domain)}",
     }
 
 
@@ -289,7 +292,7 @@ def best_tld(per_tld: dict, pref: list) -> str | None:
     return None
 
 
-def render_markdown(ranked, pref, pricing_source, exact_used, elapsed):
+def render_markdown(ranked, pref, pricing_source, exact_used, elapsed, registrar=DEFAULT_REGISTRAR):
     lines = ["# Domain check", "",
              f"_Checked {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC in {elapsed:.0f}s. "
              f"Preference order: {' > '.join('.' + t for t in pref)}. "
@@ -312,13 +315,15 @@ def render_markdown(ranked, pref, pricing_source, exact_used, elapsed):
         lines += ["", "## Needs a manual look", ""]
         for r in unclear:
             u = registrar_urls(r["domain"])
-            lines.append(f"- {r['domain']} ({r['signal']}) -> {u['porkbun']}")
+            lines.append(f"- {r['domain']} ({r['signal']}) -> {u[registrar]}")
     winners = [(n, b) for n, p, b in ranked if b]
     if winners:
         lines += ["", "## Confirm before registering", "",
-                  "Registry data cannot show premium or reserved pricing. Open the registrar page for each pick:", ""]
+                  "Registry data cannot show premium or reserved pricing. Legacy gTLDs such as .com and .net "
+                  "have no registry premium tiers, so an unregistered name there is standard-priced; many newer "
+                  "TLDs (.dev, .ai and others) do tier names, so confirm those at a registrar:", ""]
         for n, b in winners[:5]:
-            lines.append(f"- {n}.{b} -> {registrar_urls(f'{n}.{b}')['porkbun']}")
+            lines.append(f"- {n}.{b} -> {registrar_urls(f'{n}.{b}')[registrar]}")
     return "\n".join(lines) + "\n"
 
 
@@ -335,6 +340,8 @@ def main(argv=None):
     ap.add_argument("--exact", action="store_true",
                     help="confirm FREE names with Porkbun checkDomain (needs PORKBUN_API_KEY + PORKBUN_SECRET_API_KEY)")
     ap.add_argument("--max-exact", type=int, default=10, help="cap on exact checks (they are rate limited)")
+    ap.add_argument("--registrar", choices=REGISTRARS, default=DEFAULT_REGISTRAR,
+                    help=f"registrar for confirmation links and --open (default: {DEFAULT_REGISTRAR})")
     ap.add_argument("--open", choices=["none", "unclear", "free"], default="none",
                     help="open registrar pages in your browser for UNCLEAR or FREE results")
     ap.add_argument("--workers", type=int, default=4)
@@ -413,7 +420,7 @@ def main(argv=None):
     ranked.sort(key=lambda x: (pref.index(x[2]) if x[2] in pref else 99,
                                1 if x[1].get(x[2], {}).get("premium") == "yes" else 0, len(x[0]), x[0]))
 
-    md = render_markdown(ranked, pref, pricing_source, exact_used, time.time() - t0)
+    md = render_markdown(ranked, pref, pricing_source, exact_used, time.time() - t0, args.registrar)
     print(md)
     if args.md_out:
         with open(args.md_out, "w", encoding="utf-8") as f:
@@ -430,7 +437,7 @@ def main(argv=None):
 
     if args.open != "none":
         want = "unclear" if args.open == "unclear" else "free"
-        urls = [registrar_urls(r["domain"])["porkbun"] for r in results if r["status"] == want][:10]
+        urls = [registrar_urls(r["domain"])[args.registrar] for r in results if r["status"] == want][:10]
         for u in urls:
             webbrowser.open(u)
         print(f"opened {len(urls)} registrar page(s) in your browser", file=sys.stderr)
